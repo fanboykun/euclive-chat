@@ -31,7 +31,7 @@ export default function AuthenticationPage() {
 
   return loggingIn ? (
     <div className="flex flex-col bg-black w-full h-full">
-      <Titlebar title="Lone Wolf" maximizeBtn={false} backgroundColor={false} />
+      {/* <Titlebar title="Lone Wolf" maximizeBtn={false} backgroundColor={false} /> */}
 
       <div className="flex flex-col justify-center items-center h-full w-full">
         <div className="flex flex-col justify-center items-center py-5 px-10 w-full">

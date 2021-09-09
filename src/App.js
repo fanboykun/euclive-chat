@@ -1,10 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import React, { useEffect, useState } from 'react';
+import { BrowserView } from 'react-device-detect';
 import { useSelector } from 'react-redux';
 import { HashRouter as Router } from 'react-router-dom';
-import AuthenticationPage from './pages/Authentication';
-import HomePage from './pages/Home';
+import MobileHomePage from './mobile/Home';
+import MobileAuthenticationPage from './mobile/Authentication';
+import AuthenticationPage from './desktop/Authentication';
+import HomePage from './desktop/Home';
 import { database, user } from './state/database';
 import { getTheme } from './state/theme.slice';
 
@@ -38,7 +41,25 @@ let App = () => {
     <Router>
       <div className={theme}>
         <div className="bg-transparent flex-none text-white w-screen h-screen select-none focus:outline-none">
-          {isLoggedIn ? <HomePage /> : <AuthenticationPage />}
+          {isLoggedIn ? (
+            <>
+              <BrowserView>
+                <HomePage />
+              </BrowserView>
+              <MobileView>
+                <MobileHomePage />
+              </MobileView>
+            </>
+          ) : (
+            <>
+              <BrowserView>
+                <AuthenticationPage />
+              </BrowserView>
+              <MobileView>
+                <MobileAuthenticationPage />
+              </MobileView>
+            </>
+          )}
         </div>
       </div>
     </Router>

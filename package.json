@@ -17,6 +17,7 @@
     "react-animations": "^1.0.0",
     "react-circular-progressbar": "^2.0.4",
     "react-contextmenu": "^2.14.0",
+    "react-device-detect": "^1.17.0",
     "react-dom": "^16.12.0",
     "react-redux": "^7.2.2",
     "react-router": "^5.2.0",
