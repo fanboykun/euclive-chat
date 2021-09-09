@@ -17,22 +17,19 @@ let App = () => {
       setIsLoggedIn(user.is);
     });
 
-    window.on('setOffline', async () => {
-      console.log('offlineRequested');
-      if (user.is) {
-        database.user(user.is.pub).get('status').put('offline');
-        database
-          .user(user.is.pub)
-          .get('status')
-          .on((data, _) => {
-            if (data === 'offline') {
-              window.send('offlineSet');
-            }
-          });
-      } else {
-        window.send('offlineSet');
-      }
-    });
+    window.onbeforeunload = () => {
+      database.user(user.is.pub).get('status').put('offline');
+      database
+        .user(user.is.pub)
+        .get('status')
+        .on((data, _) => {
+          if (data === 'offline') {
+            window.send('offlineSet');
+          }
+        });
+
+      return null;
+    };
 
     return () => {};
   }, []);

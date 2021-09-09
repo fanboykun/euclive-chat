@@ -4,6 +4,7 @@
   "description": "LoneWolf is a peer-to-peer messenger.",
   "private": false,
   "homepage": "./",
+  "license": "GPL-3.0",
   "dependencies": {
     "@craco/craco": "^5.6.3",
     "@headlessui/react": "^1.0.0",

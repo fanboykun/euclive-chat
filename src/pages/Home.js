@@ -6,7 +6,6 @@ import Welcome from '../components/welcome';
 import { database, generateCertificate, user } from '../state/database';
 import FriendsPage from './friends/Friends';
 
-import 'gun/lib/shim';
 import ProfilePage from './profile/Profile';
 
 export default function HomePage() {
@@ -45,7 +44,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="flex flex-col bg-black rounded-lg w-full h-full">
+    <div className="flex flex-col bg-black w-full h-full">
       <Titlebar title="Lone Wolf" />
       <div className="flex w-full h-full overflow-y-hidden">
         <div className="flex flex-col flex-none w-72">

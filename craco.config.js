@@ -3,7 +3,7 @@ var webpack = require('webpack')
 module.exports = {
     webpack: {
         configure: {
-            target: 'electron-renderer',
+            target: 'web',
         },
         plugins: [
             new webpack.DefinePlugin({
