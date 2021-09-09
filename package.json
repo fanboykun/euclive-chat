@@ -1,20 +1,62 @@
 {
-  "name": "lonewolf-web",
+  "name": "lone-wolf",
   "version": "0.0.1",
-  "description": "Lone Wolf is a peer-to-peer messenger.",
-  "scripts": {
-    "start": "vite",
-    "dev": "vite",
-    "build": "vite build",
-    "serve": "vite preview"
-  },
-  "license": "GPL-3.0",
-  "devDependencies": {
-    "vite": "^2.5.1",
-    "vite-plugin-pwa": "^0.11.2",
-    "vite-plugin-solid": "^2.0.3"
-  },
+  "description": "LoneWolf is a peer-to-peer messenger.",
+  "private": false,
+  "homepage": "./",
   "dependencies": {
-    "solid-js": "^1.1.1"
+    "@craco/craco": "^5.6.3",
+    "@headlessui/react": "^1.0.0",
+    "@reduxjs/toolkit": "^1.5.0",
+    "gun": "^0.2020.1234",
+    "gun-unset": "^1.0.1",
+    "moment": "^2.29.1",
+    "node-sass": "4.14.1",
+    "react": "^16.12.0",
+    "react-animations": "^1.0.0",
+    "react-circular-progressbar": "^2.0.4",
+    "react-contextmenu": "^2.14.0",
+    "react-dom": "^16.12.0",
+    "react-redux": "^7.2.2",
+    "react-router": "^5.2.0",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "^3.3.0",
+    "react-scroll-to-bottom": "^4.1.0",
+    "react-tooltip": "^4.2.21",
+    "redux": "^4.0.5",
+    "redux-axios-middleware": "^4.0.1",
+    "redux-persist": "^6.0.0",
+    "zenbase": "^2.0.0"
+  },
+  "scripts": {
+    "start": "npm run react-start",
+    "electron-test": "wait-on http://localhost:3000/ && cross-env NODE_ENV=development npm run electron-start",
+    "build": "npm run react-build",
+    "react-start": "craco start",
+    "react-build": "craco build",
+    "test": "craco test"
+  },
+  "repository": "git@github.com:connor-davis/lonewolf-desktop.git",
+  "author": "Connor Davis <19422@kloofhigh.co.za>",
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.8.3",
+    "@tailwindcss/postcss7-compat": "^2.1.2",
+    "@types/jest": "^24.9.1",
+    "@types/node": "^13.5.0",
+    "@types/react": "^16.9.19",
+    "@types/react-dom": "^16.9.5",
+    "autoprefixer": "9",
+    "postcss": "7",
+    "tailwindcss": "npm:@tailwindcss/postcss7-compat",
+    "typescript": "^3.7.5"
   }
 }
