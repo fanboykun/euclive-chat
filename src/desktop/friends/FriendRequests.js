@@ -2,7 +2,7 @@ import 'gun-unset';
 import React from 'react';
 import ScrollToBottom from 'react-scroll-to-bottom';
 import { database, user } from '../../state/database';
-import { useFriendRequestsList } from './friendsFunctions';
+import { useFriendRequestsList } from '../../functions/friendsFunctions';
 
 export default function FriendRequestsPage() {
   let [friendRequests, setFriendRequests] = useFriendRequestsList();

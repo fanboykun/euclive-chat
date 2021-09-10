@@ -30,12 +30,12 @@ export default function HomePage() {
   useEffect(() => {
     let userData = database.user();
 
-    userData.open((user) => {
-      if (user.pub) setPub(user.pub);
-      if (user.userName) setName(user.userName);
-      if (user.alias) setAlias(user.alias);
-      if (user.image) setImage(user.image);
-      if (user.status) setStatus(user.status);
+    userData.on((data, key) => {
+      if (data.pub) setPub(data.pub);
+      if (data.userName) setName(data.userName);
+      if (data.alias) setAlias(data.alias);
+      if (data.image) setImage(data.image);
+      if (data.status) setStatus(data.status);
     });
 
     userData.get('status').put('online');

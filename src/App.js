@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import React, { useEffect, useState } from 'react';
-import { BrowserView } from 'react-device-detect';
+import { BrowserView, MobileView } from 'react-device-detect';
 import { useSelector } from 'react-redux';
 import { HashRouter as Router } from 'react-router-dom';
 import MobileHomePage from './mobile/Home';
@@ -20,22 +20,28 @@ let App = () => {
       setIsLoggedIn(user.is);
     });
 
-    window.onbeforeunload = () => {
-      database.user(user.is.pub).get('status').put('offline');
-      database
-        .user(user.is.pub)
-        .get('status')
-        .on((data, _) => {
-          if (data === 'offline') {
-            window.send('offlineSet');
-          }
-        });
-
-      return null;
-    };
-
     return () => {};
   }, []);
+
+  useEffect(() => {
+    window.addEventListener('unload', setOfflineStatus);
+
+    return () => {
+      window.removeEventListener('unload', setOfflineStatus);
+    };
+  }, []);
+
+  let setOfflineStatus = async () => {
+    if (user.is) {
+      database.user().get('status').put('offline');
+      database.user().on((user, key) => {
+        if (user.status === 'offline') {
+        } else {
+          database.user().get('status').put('offline');
+        }
+      });
+    }
+  };
 
   return (
     <Router>
@@ -43,19 +49,19 @@ let App = () => {
         <div className="bg-transparent flex-none text-white w-screen h-screen select-none focus:outline-none">
           {isLoggedIn ? (
             <>
-              <BrowserView>
+              <BrowserView viewClassName="w-screen h-screen">
                 <HomePage />
               </BrowserView>
-              <MobileView>
+              <MobileView viewClassName="w-screen h-screen">
                 <MobileHomePage />
               </MobileView>
             </>
           ) : (
             <>
-              <BrowserView>
+              <BrowserView viewClassName="w-screen h-screen">
                 <AuthenticationPage />
               </BrowserView>
-              <MobileView>
+              <MobileView viewClassName="w-screen h-screen">
                 <MobileAuthenticationPage />
               </MobileView>
             </>

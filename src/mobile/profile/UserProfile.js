@@ -24,18 +24,14 @@ export default function UserProfilePage({ publicKey }) {
   let [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    database.user().open((user) => {
-      setUserInfo(user);
+    database.user().on((user, key) => {
+      if (user.userName) setName(user.userName);
+    if (user.userAbout) setAbout(user.userAbout);
+    if (user.image) setImage(user.image);
     });
 
     return () => {};
   }, []);
-
-  useEffect(() => {
-    if (userInfo.userName) setName(userInfo.userName);
-    if (userInfo.userAbout) setAbout(userInfo.userAbout);
-    if (userInfo.image) setImage(userInfo.image);
-  }, [userInfo]);
 
   let onUploadProgress = (progress, { loaded, total }) => {
     console.log(progress * 100);

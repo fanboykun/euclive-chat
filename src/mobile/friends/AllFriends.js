@@ -2,7 +2,7 @@ import React from 'react';
 import ScrollToBottom from 'react-scroll-to-bottom';
 import { Link } from 'react-router-dom';
 
-import { useFriendsList } from './friendsFunctions';
+import { useFriendsList } from '../../functions/friendsFunctions';
 
 export default function MobileAllFriendsPage() {
   let [friends] = useFriendsList();

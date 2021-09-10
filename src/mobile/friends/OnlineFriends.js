@@ -2,7 +2,7 @@ import React from 'react';
 import ScrollToBottom from 'react-scroll-to-bottom';
 import { Link } from 'react-router-dom';
 
-import { useOnlineFriendsList } from './friendsFunctions';
+import { useOnlineFriendsList } from '../../functions/friendsFunctions';
 
 export default function MobileOnlineFriendsPage() {
   let [friends] = useOnlineFriendsList();

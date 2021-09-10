@@ -8,7 +8,7 @@ export default function FriendProfilePage({ publicKey }) {
   let [image, setImage] = useState('');
 
   useEffect(() => {
-    database.user(publicKey).open((user) => {
+    database.user(publicKey).on((user, key) => {
       setName(user.userName);
       setAbout(user.userAbout);
       setImage(user.image);

@@ -5,7 +5,7 @@ export default function MobileAddFriendPage() {
   let [friendPublicKey, setFriendPublicKey] = useState('');
 
   let sendFriendRequest = (certificate) => {
-    database.user(friendPublicKey).open((friend) => {
+    database.user(friendPublicKey).once((friend, key) => {
       if (friend.friendRequestsCertificate && friend.pub)
         database
           .user(friend.pub)
@@ -23,8 +23,8 @@ export default function MobileAddFriendPage() {
         You can add a friend with their Public Key.
       </div>
 
-      <div className="flex items-center w-full">
-        <div className="flex justify-start items-center border-l border-t border-b border-black rounded-tl-md rounded-bl-md bg-gray-800 focus:outline-none px-4 py-2 w-full h-full">
+      <div className="flex flex-col space-y-4 mt-10">
+        <div className="flex justify-start items-center mt-10 bg-gray-800 focus:outline-none px-4 py-2 w-full border-l border-t border-r border-b border-black rounded-md">
           <input
             type="text"
             placeholder="Enter a Public Key"
@@ -34,10 +34,12 @@ export default function MobileAddFriendPage() {
           />
         </div>
 
-        <div className="flex justify-end items-center border-r border-t border-b border-black rounded-tr-md rounded-br-md bg-gray-800 focus:outline-none px-4 py-2 flex-none h-full">
+        <div className="flex items-center bg-gray-800 focus:outline-none py-2 flex-none">
           <div
             className="flex justify-center items-center px-6 py-2 text-sm rounded-md bg-blue-600 cursor-pointer w-full"
-            onClick={() => sendFriendRequest()}
+            onClick={() => {
+              if (friendPublicKey !== '') sendFriendRequest();
+            }}
           >
             Send Friend Request
           </div>

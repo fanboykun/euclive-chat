@@ -30,7 +30,7 @@ export default function MobileHomePage() {
   useEffect(() => {
     let userData = database.user();
 
-    userData.open((user) => {
+    userData.on((user, key) => {
       if (user.pub) setPub(user.pub);
       if (user.userName) setName(user.userName);
       if (user.alias) setAlias(user.alias);
@@ -45,80 +45,94 @@ export default function MobileHomePage() {
 
   return (
     <div className="flex flex-col bg-black w-full h-full">
+      <div className="px-2 pt-2">
       <Titlebar title="Lone Wolf" />
-      <div className="flex w-full h-full overflow-y-hidden">
-        <div className="flex flex-col flex-none w-72">
-          <div className="flex flex-col w-full h-full"></div>
-          <div className="flex flex-col w-full h-12 bg-gray-800 rounded-bl-lg">
-            <div className="flex justify-between items-center w-full h-full bg-black rounded-bl-lg rounded-br-xl p-2 border-t border-gray-900">
-              <Link to={`/profile/${pub}`}>
-                <div className="flex items-center space-x-1">
-                  <div className="relative flex flex-none w-10 h-10 bg-black rounded-full p-1">
-                    <img
-                      className="object-cover relative rounded-full w-full h-full "
-                      src={
-                        image ||
-                        'https://skyportal.xyz/BADvbV9BumlWmiKc1EOxgNOj-zaRr-_TOlzBw1HQzq6Zdg'
-                      }
-                      alt=""
-                    />
-                    <div
-                      className={`absolute bottom-1 right-1 border-l-2 border-t-2 border-r-2 border-b-2 border-black w-3 h-3 bg-gray-400 rounded-full ${
-                        status === 'online' && 'bg-green-600'
-                      }`}
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <div className="flex items-center text-xs text-gray-200 h-auto">
-                      {name}
-                    </div>
-                    <div className="flex items-center text-xs text-gray-400 h-auto">
-                      @{alias}
-                    </div>
-                  </div>
-                </div>
-              </Link>
-              <div className="flex items-center space-x-2">
-                <Link to="/friends">
-                  <div className="flex justify-center items-center w-6 h-6 rounded-full text-gray-400 hover:text-blue-600 cursor-pointer transition duration-150 ease-in-out">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                      />
-                    </svg>
-                  </div>
-                </Link>
+      </div>
+
+      <div className="flex flex-col w-full h-14 bg-black mt-3 px-2">
+        <div className="flex justify-between items-center w-full h-full bg-black">
+          <Link to={`/profile/${pub}`}>
+            <div className="flex items-center space-x-1">
+              <div className="relative flex flex-none w-12 h-12 bg-black rounded-full p-1">
+                <img
+                  className="object-cover relative rounded-full w-full h-full "
+                  src={
+                    image ||
+                    'https://skyportal.xyz/BADvbV9BumlWmiKc1EOxgNOj-zaRr-_TOlzBw1HQzq6Zdg'
+                  }
+                  alt=""
+                />
                 <div
-                  className="flex justify-center items-center w-6 h-6 rounded-full text-gray-400 hover:text-red-600 cursor-pointer transition duration-150 ease-in-out"
-                  onClick={() => user.leave()}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                    />
-                  </svg>
+                  className={`absolute bottom-1 right-1 border-l-2 border-t-2 border-r-2 border-b-2 border-black w-3 h-3 bg-gray-400 rounded-full ${
+                    status === 'online' && 'bg-green-600'
+                  }`}
+                />
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center text-xs text-gray-200 h-auto">
+                  {name}
+                </div>
+                <div className="flex items-center text-xs text-gray-400 h-auto">
+                  @{alias}
                 </div>
               </div>
             </div>
+          </Link>
+          <div className="flex items-center space-x-2">
+            <Link to="/friends">
+              <div className="flex justify-center items-center w-6 h-6 rounded-full text-gray-400 hover:text-blue-600 cursor-pointer transition duration-150 ease-in-out">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
+                </svg>
+              </div>
+            </Link>
+            <div
+              className="flex justify-center items-center w-6 h-6 rounded-full text-gray-400 hover:text-red-600 cursor-pointer transition duration-150 ease-in-out"
+              onClick={() => user.leave()}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+            </div>
           </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col flex-grow h-full bg-gray-800 rounded-t-xl mt-5">
+        <Route path="/" exact component={() => <Welcome />} />
+        <Route
+          path="/friends"
+          render={({ match: { url } }) => <FriendsPage url={url} />}
+        />
+        <Route path="/profile/:publicKey" component={ProfilePage} />
+      </div>
+
+      {/* <div className="flex w-full h-full overflow-y-hidden">
+        <div className="flex flex-col flex-none w-72">
+          <div className="flex flex-col w-full h-full"></div>
+          
         </div>
         <div className="flex flex-col flex-grow h-full bg-gray-800 rounded-tl-xl rounded-br-lg">
           <Route path="/" exact component={() => <Welcome />} />
@@ -128,7 +142,7 @@ export default function MobileHomePage() {
           />
           <Route path="/profile/:publicKey" component={ProfilePage} />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
