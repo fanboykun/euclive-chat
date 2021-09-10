@@ -4,16 +4,20 @@ import { database, user } from '../../state/database';
 export default function AddFriendPage() {
   let [friendPublicKey, setFriendPublicKey] = useState('');
 
-  let sendFriendRequest = () => {
-    database.user(friendPublicKey).once((friend, key) => {
-      if (friend.friendRequestsCertificate && friend.pub)
-        database
-          .user(friend.pub)
-          .get('friendRequests')
-          .set(user.is.pub, null, {
-            opt: { cert: friend.friendRequestsCertificate },
-          });
-    });
+  let sendFriendRequest = async () => {
+    database
+      .user(friendPublicKey)
+      .get('friendRequestsCertificate')
+      .once((friendRequestsCertificate, key) => {
+        console.log(friendRequestsCertificate);
+        if (friendRequestsCertificate)
+          database
+            .user(friendPublicKey)
+            .get('friendRequests')
+            .set(user.is.pub, () => setFriendPublicKey(''), {
+              opt: { cert: friendRequestsCertificate },
+            });
+      });
   };
 
   return (

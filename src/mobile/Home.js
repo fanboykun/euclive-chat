@@ -3,10 +3,13 @@ import React, { useEffect, useState } from 'react';
 import { Route, Link } from 'react-router-dom';
 import Titlebar from '../components/titlebar';
 import Welcome from '../components/welcome';
+import { useChatsList } from '../functions/friendsFunctions';
 import { database, generateCertificate, user } from '../state/database';
+import ScrollToBottom from 'react-scroll-to-bottom';
 import FriendsPage from './friends/Friends';
-
 import ProfilePage from './profile/Profile';
+import ChatPage from './Chat';
+import { SEA } from 'gun';
 
 export default function MobileHomePage() {
   let [pub, setPub] = useState('');
@@ -14,6 +17,7 @@ export default function MobileHomePage() {
   let [alias, setAlias] = useState('');
   let [image, setImage] = useState('');
   let [status, setStatus] = useState('');
+  let [chats] = useChatsList();
 
   useEffect(() => {
     database
@@ -22,6 +26,43 @@ export default function MobileHomePage() {
       .once((certificate, _) => {
         if (!certificate) {
           generateCertificate(user);
+        }
+      });
+
+    let sizeOf = (obj) => {
+      var size = 0,
+        key;
+      for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+      }
+      return size - 1;
+    };
+
+    database
+      .user()
+      .get('friends')
+      .once(async (friends, key) => {
+        let publicKeys = [];
+
+        for (let k in friends) {
+          console.log(friends[k]);
+
+          if (friends[k] !== user.is.pub && typeof friends[k] === 'string')
+            publicKeys.push(friends[k]);
+
+          if (publicKeys.length === sizeOf(friends) && publicKeys.length > 0) {
+            console.log('Generating chatWithCertificate.');
+
+            let chatWithCertificate = await SEA.certify(
+              publicKeys,
+              [{ '*': 'chats' }],
+              database.user().pair(),
+              null,
+              {}
+            );
+
+            database.user().get('chatWithCertificate').put(chatWithCertificate);
+          }
         }
       });
     return () => {};
@@ -46,7 +87,7 @@ export default function MobileHomePage() {
   return (
     <div className="flex flex-col bg-black w-full h-full">
       <div className="px-2 pt-2">
-      <Titlebar title="Lone Wolf" />
+        <Titlebar title="Lone Wolf" />
       </div>
 
       <div className="flex flex-col w-full h-14 bg-black mt-3 px-2">
@@ -121,12 +162,74 @@ export default function MobileHomePage() {
       </div>
 
       <div className="flex flex-col flex-grow h-full bg-gray-800 rounded-t-xl mt-5">
-        <Route path="/" exact component={() => <Welcome />} />
+        {chats.length > 0 && (
+          <Route
+            path="/"
+            exact
+            component={() => (
+              <ScrollToBottom className="flex flex-col flex-1 overflow-auto h-full p-2">
+                {chats.map(
+                  (
+                    {
+                      friend: {
+                        alias,
+                        image,
+                        userName,
+                        status,
+                        pub: friendPub,
+                      },
+                      pub: chatPub,
+                    },
+                    index
+                  ) => (
+                    <Link
+                      key={index}
+                      to={`/chat/${chatPub}/${friendPub}`}
+                      className="flex w-full items-center space-x-2 border-b border-gray-700 py-1"
+                    >
+                      <div className="flex items-center space-x-1">
+                        <div className="relative flex flex-none w-12 h-12 bg-black rounded-full border-l-2 border-t-2 border-r-2 border-b-2 border-black">
+                          <img
+                            className="object-cover relative rounded-full w-full h-full "
+                            src={
+                              image ||
+                              'https://skyportal.xyz/BADvbV9BumlWmiKc1EOxgNOj-zaRr-_TOlzBw1HQzq6Zdg'
+                            }
+                            alt=""
+                          />
+                          <div
+                            className={`absolute bottom-0 right-0 border-l-2 border-t-2 border-r-2 border-b-2 border-black w-3 h-3 bg-gray-400 rounded-full ${
+                              status === 'online' && 'bg-green-600'
+                            }`}
+                          />
+                        </div>
+                        <div className="flex flex-col">
+                          <div className="flex items-center text-xs text-gray-200 h-auto">
+                            {userName || `@${alias}`}
+                          </div>
+                          <div className="flex items-center text-xs text-gray-400 h-auto">
+                            Area under construction, beware!
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                )}
+              </ScrollToBottom>
+            )}
+          />
+        )}
+
+        {chats.length === 0 && (
+          <Route path="/" exact component={() => <Welcome />} />
+        )}
+
         <Route
           path="/friends"
           render={({ match: { url } }) => <FriendsPage url={url} />}
         />
         <Route path="/profile/:publicKey" component={ProfilePage} />
+        <Route path="/chat/:chat/:friend" component={ChatPage} />
       </div>
 
       {/* <div className="flex w-full h-full overflow-y-hidden">

@@ -4,9 +4,12 @@ import { Route, Link } from 'react-router-dom';
 import Titlebar from '../components/titlebar';
 import Welcome from '../components/welcome';
 import { database, generateCertificate, user } from '../state/database';
+import { SEA } from 'gun';
 import FriendsPage from './friends/Friends';
-
 import ProfilePage from './profile/Profile';
+import { useChatsList } from '../functions/friendsFunctions';
+import ScrollToBottom from 'react-scroll-to-bottom';
+import ChatPage from './Chat';
 
 export default function HomePage() {
   let [pub, setPub] = useState('');
@@ -14,6 +17,7 @@ export default function HomePage() {
   let [alias, setAlias] = useState('');
   let [image, setImage] = useState('');
   let [status, setStatus] = useState('');
+  let [chats] = useChatsList();
 
   useEffect(() => {
     database
@@ -22,6 +26,43 @@ export default function HomePage() {
       .once((certificate, _) => {
         if (!certificate) {
           generateCertificate(user);
+        }
+      });
+
+    let sizeOf = (obj) => {
+      var size = 0,
+        key;
+      for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+      }
+      return size - 1;
+    };
+
+    database
+      .user()
+      .get('friends')
+      .once(async (friends, key) => {
+        let publicKeys = [];
+
+        for (let k in friends) {
+          console.log(friends[k]);
+
+          if (friends[k] !== user.is.pub && typeof friends[k] === 'string')
+            publicKeys.push(friends[k]);
+
+          if (publicKeys.length === sizeOf(friends) && publicKeys.length > 0) {
+            console.log('Generating chatWithCertificate.');
+
+            let chatWithCertificate = await SEA.certify(
+              publicKeys,
+              [{ '*': 'chats' }],
+              database.user().pair(),
+              null,
+              {}
+            );
+
+            database.user().get('chatWithCertificate').put(chatWithCertificate);
+          }
         }
       });
     return () => {};
@@ -48,7 +89,67 @@ export default function HomePage() {
       <Titlebar title="Lone Wolf" />
       <div className="flex w-full h-full overflow-y-hidden">
         <div className="flex flex-col flex-none w-72">
-          <div className="flex flex-col w-full h-full"></div>
+          <div className="flex flex-col w-full h-full">
+            {chats.length > 0 && (
+              <ScrollToBottom className="flex flex-col flex-1 overflow-auto h-full p-2">
+                {chats.map(
+                  (
+                    {
+                      friend: {
+                        alias,
+                        image,
+                        userName,
+                        status,
+                        pub: friendPub,
+                      },
+                      pub: chatPub,
+                    },
+                    index
+                  ) => (
+                    <Link
+                      key={index}
+                      to={`/chat/${chatPub}/${friendPub}`}
+                      className="flex w-full items-center space-x-2"
+                    >
+                      <div className="flex items-center space-x-1">
+                        <div className="relative flex flex-none w-12 h-12 bg-black rounded-full border-l-2 border-t-2 border-r-2 border-b-2 border-black">
+                          <img
+                            className="object-cover relative rounded-full w-full h-full "
+                            src={
+                              image ||
+                              'https://skyportal.xyz/BADvbV9BumlWmiKc1EOxgNOj-zaRr-_TOlzBw1HQzq6Zdg'
+                            }
+                            alt=""
+                          />
+                          <div
+                            className={`absolute bottom-0 right-0 border-l-2 border-t-2 border-r-2 border-b-2 border-black w-3 h-3 bg-gray-400 rounded-full ${
+                              status === 'online' && 'bg-green-600'
+                            }`}
+                          />
+                        </div>
+                        <div className="flex flex-col">
+                          <div className="flex items-center text-xs text-gray-200 h-auto">
+                            {userName || `@${alias}`}
+                          </div>
+                          <div className="flex items-center text-xs text-gray-400 h-auto">
+                            Area under construction, beware!
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                )}
+              </ScrollToBottom>
+            )}
+
+            {chats.length === 0 && (
+              <div className="flex flex-col justify-center items-center w-full h-full">
+                <div className="flex justify-center items-center w-full h-full">
+                  <div className="flex text-gray-300">You have no chats.</div>
+                </div>
+              </div>
+            )}
+          </div>
           <div className="flex flex-col w-full h-12 bg-gray-800 rounded-bl-lg">
             <div className="flex justify-between items-center w-full h-full bg-black rounded-bl-lg rounded-br-xl p-2 border-t border-gray-900">
               <Link to={`/profile/${pub}`}>
@@ -127,6 +228,7 @@ export default function HomePage() {
             render={({ match: { url } }) => <FriendsPage url={url} />}
           />
           <Route path="/profile/:publicKey" component={ProfilePage} />
+          <Route path="/chat/:chat/:friend" component={ChatPage} />
         </div>
       </div>
     </div>

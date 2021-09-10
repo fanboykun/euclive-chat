@@ -2,6 +2,7 @@ import Gun, { SEA } from 'gun';
 
 import 'gun/sea';
 // import 'gun/axe';
+import 'gun/lib/load';
 
 let database = new Gun({
   peers: ['https://lonewolf-relay.seconddawn.cloud/gun'],

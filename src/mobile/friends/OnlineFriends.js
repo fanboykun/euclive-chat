@@ -1,10 +1,15 @@
 import React from 'react';
 import ScrollToBottom from 'react-scroll-to-bottom';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 
-import { useOnlineFriendsList } from '../../functions/friendsFunctions';
+import {
+  generateChat,
+  useOnlineFriendsList,
+  userHasChatWith,
+} from '../../functions/friendsFunctions';
 
 export default function MobileOnlineFriendsPage() {
+  let history = useHistory();
   let [friends] = useOnlineFriendsList();
 
   return (
@@ -54,7 +59,17 @@ export default function MobileOnlineFriendsPage() {
                   </div>
                 </Link>
                 <div className="flex items-center space-x-4">
-                  <div className="flex justify-center items-center h-10 w-10 text-gray-400 hover:text-blue-600 bg-black rounded-full cursor-pointer">
+                  <div
+                    className="flex justify-center items-center h-10 w-10 text-gray-400 hover:text-blue-600 bg-black rounded-full cursor-pointer"
+                    onClick={() => {
+                      userHasChatWith(pub, (hasChatWith, data) => {
+                        if (hasChatWith) {
+                          console.log(data);
+                          history.push(`/chat/${data.chat}/${data.friend}`);
+                        } else generateChat(pub);
+                      });
+                    }}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4"

@@ -1,10 +1,15 @@
 import React from 'react';
 import ScrollToBottom from 'react-scroll-to-bottom';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 
-import { useFriendsList } from '../../functions/friendsFunctions';
+import {
+  generateChat,
+  useFriendsList,
+  userHasChatWith,
+} from '../../functions/friendsFunctions';
 
 export default function MobileAllFriendsPage() {
+  let history = useHistory();
   let [friends] = useFriendsList();
 
   return (
@@ -53,26 +58,36 @@ export default function MobileAllFriendsPage() {
                     </div>
                   </div>
                 </Link>
-              <div className="flex items-center space-x-4">
-                <div className="flex justify-center items-center h-10 w-10 text-gray-400 hover:text-blue-600 bg-black rounded-full cursor-pointer">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                <div className="flex items-center space-x-4">
+                  <div
+                    className="flex justify-center items-center h-10 w-10 text-gray-400 hover:text-blue-600 bg-black rounded-full cursor-pointer"
+                    onClick={() => {
+                      userHasChatWith(pub, (hasChatWith, data) => {
+                        if (hasChatWith) {
+                          console.log(data);
+                          history.push(`/chat/${data.chat}/${data.friend}`);
+                        } else generateChat(pub);
+                      });
+                    }}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-                    />
-                  </svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                      />
+                    </svg>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </ScrollToBottom>
       )}
 
