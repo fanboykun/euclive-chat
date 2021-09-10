@@ -9,11 +9,16 @@ export default function MobileOnlineFriendsPage() {
 
   return (
     <>
-      {friends.filter((friend) => friend.status === 'online').length > 0 && (
-        <ScrollToBottom className="flex flex-col flex-1 overflow-auto p-2">
+      {friends.length > 0 && (
+        <ScrollToBottom className="flex flex-col flex-1 overflow-auto h-full p-2">
           {friends
-            .filter((friend) => friend.status === 'online')
-            .map(({ alias, status, pub }, index) => (
+            .sort((a, b) => {
+              if (a.userName > b.userName || a.alias > b.alias) return -1;
+              if (a.userName < b.userName || a.alias < b.alias) return 1;
+
+              return 0;
+            })
+            .map(({ alias, image, userName, status, pub }, index) => (
               <div
                 key={index}
                 className="flex items-center w-full h-16 border-b border-gray-700 p-2 space-x-4 "
@@ -22,12 +27,31 @@ export default function MobileOnlineFriendsPage() {
                   to={`/profile/${pub}`}
                   className="flex w-full items-center space-x-2"
                 >
-                  <div className="text-md text-gray-400">@{alias}</div>
-                  <div
-                    className={`w-2 h-2 bg-gray-400 rounded-full ${
-                      status === 'online' && 'bg-green-600'
-                    }`}
-                  />
+                  <div className="flex items-center space-x-1">
+                    <div className="relative flex flex-none w-12 h-12 bg-black rounded-full border-l-2 border-t-2 border-r-2 border-b-2 border-black">
+                      <img
+                        className="object-cover relative rounded-full w-full h-full "
+                        src={
+                          image ||
+                          'https://skyportal.xyz/BADvbV9BumlWmiKc1EOxgNOj-zaRr-_TOlzBw1HQzq6Zdg'
+                        }
+                        alt=""
+                      />
+                      <div
+                        className={`absolute bottom-0 right-0 border-l-2 border-t-2 border-r-2 border-b-2 border-black w-3 h-3 bg-gray-400 rounded-full ${
+                          status === 'online' && 'bg-green-600'
+                        }`}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <div className="flex items-center text-xs text-gray-200 h-auto">
+                        {userName}
+                      </div>
+                      <div className="flex items-center text-xs text-gray-400 h-auto">
+                        @{alias}
+                      </div>
+                    </div>
+                  </div>
                 </Link>
                 <div className="flex items-center space-x-4">
                   <div className="flex justify-center items-center h-10 w-10 text-gray-400 hover:text-blue-600 bg-black rounded-full cursor-pointer">

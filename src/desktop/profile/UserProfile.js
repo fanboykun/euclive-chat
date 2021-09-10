@@ -7,9 +7,7 @@ import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { SkynetClient } from 'skynet-js';
 
-export default function UserProfilePage({ publicKey }) {
-  let [userInfo, setUserInfo] = useState({});
-
+export default function UserProfilePage() {
   let [name, setName] = useState('');
   let [isEditingName, setIsEditingName] = useState(false);
 

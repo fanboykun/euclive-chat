@@ -4,7 +4,7 @@ import { database, user } from '../../state/database';
 export default function MobileAddFriendPage() {
   let [friendPublicKey, setFriendPublicKey] = useState('');
 
-  let sendFriendRequest = (certificate) => {
+  let sendFriendRequest = () => {
     database.user(friendPublicKey).once((friend, key) => {
       if (friend.friendRequestsCertificate && friend.pub)
         database

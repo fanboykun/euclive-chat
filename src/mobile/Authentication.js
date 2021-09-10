@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import Titlebar from '../components/titlebar';
 import { user } from '../state/database';
 import { setUserPublicKey } from '../state/user.slice';
 
@@ -75,12 +74,12 @@ export default function MobileAuthenticationPage() {
       </div>
     </div>
   ) : (
-    <div className="flex flex-col bg-black rounded-lg w-full h-full">
-      <Titlebar title="Lone Wolf" maximizeBtn={false} backgroundColor={false} />
+    <div className="flex flex-col bg-black w-full h-full">
       <div className="flex flex-col justify-center items-center h-full w-full">
         <div className="flex flex-col justify-center items-center py-5 px-10 w-full">
           <div>Welcome to Lone Wolf.</div>
           <div className="text-gray-400">Please authenticate to proceed.</div>
+          {error !== '' && <div className="text-red-600">{error}</div>}
         </div>
         <div className="flex flex-col justify-center items-center py-4 px-4 w-full space-y-4">
           <input
