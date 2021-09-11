@@ -41,12 +41,10 @@ export default function MobileHomePage() {
     database
       .user()
       .get('friends')
-      .once(async (friends, key) => {
+      .on(async (friends, key) => {
         let publicKeys = [];
 
         for (let k in friends) {
-          console.log(friends[k]);
-
           if (friends[k] !== user.is.pub && typeof friends[k] === 'string')
             publicKeys.push(friends[k]);
 
