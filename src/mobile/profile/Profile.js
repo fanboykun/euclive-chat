@@ -11,7 +11,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col w-full h-full">
-      <div className="flex justify-between items-center shadow rounded-tl-lg p-3">
+      <div className="flex justify-between items-center shadow rounded-t-lg p-3">
         <div className="flex items-center space-x-3">
           <div
             className="text-gray-400 cursor-pointer hover:text-white transition duration-150 ease-in-out"

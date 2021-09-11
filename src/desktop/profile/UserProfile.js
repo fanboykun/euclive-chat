@@ -6,8 +6,12 @@ import { database } from '../../state/database';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { SkynetClient } from 'skynet-js';
+import CropperComponent from '../../hooks/cropper';
 
 export default function UserProfilePage() {
+  let [cropSrc, setCropSrc] = useState('');
+  let [mustCrop, setMustCrop] = useState(false);
+
   let [name, setName] = useState('');
   let [isEditingName, setIsEditingName] = useState(false);
 
@@ -21,10 +25,12 @@ export default function UserProfilePage() {
   let [uploadProgress, setUploadProgress] = useState(0);
   let [isProcessing, setIsProcessing] = useState(false);
 
+  let [croppedImage, setCroppedImage] = useState();
+
   useEffect(() => {
     database.user().on((data, key) => {
       setName(data.userName);
-      setAbout(data.userAbout)
+      setAbout(data.userAbout);
       setImage(data.image);
     });
 
@@ -49,15 +55,33 @@ export default function UserProfilePage() {
     database.user().get('userAbout').put(about);
   };
 
-  let changeImage = () => {
+  function dataURLtoFile(dataurl, filename) {
+    var arr = dataurl.split(','),
+      mime = arr[0].match(/:(.*?);/)[1],
+      bstr = atob(arr[1]),
+      n = bstr.length,
+      u8arr = new Uint8Array(n);
+
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+
+    return new File([u8arr], filename, { type: mime });
+  }
+
+  let changeImage = async () => {
     let client = new SkynetClient('https://siasky.net/', {
       onUploadProgress,
     });
 
+    var file = dataURLtoFile(croppedImage, 'profileImage.jpeg');
+
     client
-      .uploadFile(imageFileRef.current.files[0])
+      .uploadFile(file)
       .then(async (skylink) => {
         if (skylink) {
+          setIsEditingImage(false);
+
           console.log('Upload successful - ' + skylink);
 
           const url = await client.getSkylinkUrl(skylink.split(':')[1]);
@@ -76,6 +100,34 @@ export default function UserProfilePage() {
 
   return (
     <>
+      <CropperComponent
+        cropSrc={cropSrc}
+        mustCrop={mustCrop}
+        onFinishedCropSrc={(src) => setCroppedImage(src)}
+      />
+      {mustCrop && (
+        <div className="absolute w-full h-auto bottom-0 left-0 z-30">
+          <div className="flex justify-between items-center shadow rounded-t-lg p-3 bg-gray-800">
+            <div
+              className="flex justify-center items-center px-6 py-2 rounded-md bg-blue-600 cursor-pointer"
+              onClick={() => {
+                setMustCrop(false);
+              }}
+            >
+              Cancel
+            </div>
+            <div
+              className="flex justify-center items-center px-6 py-2 rounded-md bg-blue-600 cursor-pointer"
+              onClick={() => {
+                setMustCrop(false);
+                changeImage();
+              }}
+            >
+              Continue
+            </div>
+          </div>
+        </div>
+      )}
       <div
         className="flex flex-none justify-center items-center w-60 h-60 bg-black rounded-full p-1"
         onMouseOver={() =>
@@ -151,7 +203,16 @@ export default function UserProfilePage() {
           ref={imageFileRef}
           type="file"
           className="hidden"
-          onChange={() => changeImage()}
+          onChange={() => {
+            if (imageFileRef.current.files.length > 0) {
+              setMustCrop(true);
+
+              console.log(imageFileRef.current.files);
+
+              setCropSrc(URL.createObjectURL(imageFileRef.current.files[0]));
+            }
+            setIsEditingImage(false);
+          }}
         />
       </div>
       <div className="flex flex-col w-72 space-y-2 h-auto shadow p-3">
