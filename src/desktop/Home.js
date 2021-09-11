@@ -53,7 +53,7 @@ export default function HomePage() {
 
             let chatWithCertificate = await SEA.certify(
               publicKeys,
-              [{ '*': 'chats' }],
+              [{ '*': 'chats', '*': 'messages' }],
               database.user().pair(),
               null,
               {}
@@ -106,7 +106,7 @@ export default function HomePage() {
                   ) => (
                     <Link
                       key={index}
-                      to={`/chat/${chatPub}/${friendPub}`}
+                      to={`/chat/${chatPub}`}
                       className="flex w-full items-center space-x-2"
                     >
                       <div className="flex items-center space-x-1">
@@ -226,7 +226,7 @@ export default function HomePage() {
             render={({ match: { url } }) => <FriendsPage url={url} />}
           />
           <Route path="/profile/:publicKey" component={ProfilePage} />
-          <Route path="/chat/:chat/:friend" component={ChatPage} />
+          <Route path="/chat/:chat" component={ChatPage} />
         </div>
       </div>
     </div>

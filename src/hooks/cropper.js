@@ -11,51 +11,44 @@ export default function CropperComponent({
   let canvasRef = useRef();
   const [pixels, setPixels] = useState({});
 
-  const drawImage = async (pixels) => {
+  function getRadianAngle(degreeValue) {
+    return (degreeValue * Math.PI) / 180;
+  }
+
+  const drawImage = async (area, pixels) => {
     if (canvasRef.current instanceof HTMLCanvasElement) {
       let canvas = canvasRef.current;
       let ctx = canvasRef.current.getContext('2d');
-
-      canvas.width = pixels.width;
-      canvas.height = pixels.height;
 
       let blob = document.querySelector('.reactEasyCrop_Image').src;
 
       let response = await fetch(blob);
 
-      console.log(response);
-
       var image = new Image();
 
-      console.log(pixels);
+      try {
+        image.onload = function () {
+          console.log(area, pixels);
+          ctx.drawImage(
+            image,
+            pixels.x, pixels.y, pixels.width, pixels.height, 0, 0, pixels.width, pixels.height
+          );
 
-      image.onload = function () {
-        ctx.drawImage(
-          image,
-          0,
-          0,
-          pixels.width,
-          pixels.height,
-          pixels.x,
-          pixels.y,
-          pixels.width,
-          pixels.height
-        );
+          let image64 = canvas.toDataURL('image/jpeg');
 
-        let image64 = canvas.toDataURL('image/jpeg');
+          onFinishedCropSrc(image64);
+        };
 
-        onFinishedCropSrc(image64);
-      };
+        let blobImage = await response.blob();
 
-      let blobImage = await response.blob();
-
-      image.src = URL.createObjectURL(blobImage);
+        image.src = URL.createObjectURL(blobImage);
+      } catch {}
     }
   };
 
   const onCropComplete = useCallback(async (area, pixels) => {
     setPixels(pixels);
-    if (canvasRef) drawImage(pixels);
+    if (canvasRef) drawImage(area, pixels);
   }, []);
 
   return (
@@ -77,7 +70,7 @@ export default function CropperComponent({
           canvasRef.current = canvas;
         }}
         width={pixels.width}
-        height={pixels.height}
+          height={pixels.height}
         style={{ display: 'none' }}
       />
     </>

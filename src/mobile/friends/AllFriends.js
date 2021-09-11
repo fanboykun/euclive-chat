@@ -65,7 +65,7 @@ export default function MobileAllFriendsPage() {
                       userHasChatWith(pub, (hasChatWith, data) => {
                         if (hasChatWith) {
                           console.log(data);
-                          history.push(`/chat/${data.chat}/${data.friend}`);
+                          history.push(`/chat/${data}`);
                         } else generateChat(pub);
                       });
                     }}

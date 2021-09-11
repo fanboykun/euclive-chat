@@ -91,18 +91,12 @@ let useChatsList = () => {
       .get('chats')
       .on((chats, key) => {
         for (let c in chats) {
-          if (typeof chats[c] === 'string') {
-            let chatInfo = JSON.parse(chats[c]);
-
-            console.log(chatInfo)
-
-            database.user(chatInfo.friend).on((friend, key) => {
-              setChats((old) => [
-                ...old.filter((o) => o.pub !== chatInfo.chat),
-                { pub: chatInfo.chat, friend, key: c },
-              ]);
-            });
-          }
+          database.user(chats[c]).on((friend, key) => {
+            setChats((old) => [
+              ...old.filter((o) => o.pub !== chats[c]),
+              { pub: chats[c], friend, key: c },
+            ]);
+          });
         }
       });
 
@@ -113,94 +107,45 @@ let useChatsList = () => {
 };
 
 let generateChat = async (chatWith) => {
-  sessionStorage.setItem(
-    'actualUser',
-    JSON.stringify({
-      epriv: user.pair().epriv,
-      priv: user.pair().priv,
-      epub: user.pair().epub,
-      pub: user.pair().pub,
-    })
-  );
+  database
+    .user()
+    .get('chats')
+    .set(chatWith, async () => {
+      console.log('Chat added.');
 
-  let chat = await SEA.pair();
+      let friendChatWithCertificate = await database
+        .user(chatWith)
+        .get('chatWithCertificate')
+        .then();
 
-  let certificate = await SEA.certify(
-    [chatWith, user.is.pub],
-    [{ '*': 'messages' }],
-    chat,
-    null,
-    {}
-  );
-
-  let actualUser = JSON.parse(sessionStorage.getItem('actualUser'));
-
-  setTimeout(() => {
-    database.user().auth(chat, async () => {
-      let chatInfo = JSON.stringify({
-        chat: database.user().pair().pub,
-        friend: chatWith,
-      });
-
-      let chatInfoFriend = JSON.stringify({
-        chat: database.user().pair().pub,
-        friend: actualUser.pub,
-      });
-
-      database.user().get('certificates').put(certificate);
-
-      setTimeout(() => {
-        database.user().auth(actualUser, async ({ err }) => {
-          if (err) console.log(err);
-          else {
-            sessionStorage.setItem('actualUser', null);
-
-            database
-              .user()
-              .get('chats')
-              .set(chatInfo, async () => {
-                console.log('Chat added.');
-
-                let friendChatWithCertificate = await database
-                  .user(chatWith)
-                  .get('chatWithCertificate')
-                  .then();
-
-                database
-                  .user(chatWith)
-                  .get('chats')
-                  .set(
-                    chatInfoFriend,
-                    () => {
-                      console.log('Chat added to friend.');
-                    },
-                    {
-                      opt: { cert: friendChatWithCertificate },
-                    }
-                  );
-              });
+      database
+        .user(chatWith)
+        .get('chats')
+        .set(
+          user.is.pub,
+          () => {
+            console.log('Chat added to friend.');
+          },
+          {
+            opt: { cert: friendChatWithCertificate },
           }
-        });
-      }, 200);
+        );
     });
-  }, 200);
 };
 
 let userHasChatWith = (friendPublicKey, callback) => {
-  console.log(friendPublicKey);
   database
     .user()
     .get('chats')
     .once((chats, key) => {
       if (!chats) callback(false, null);
       for (let c in chats) {
-        if (typeof chats[c] === 'string') {
-          console.log(chats[c]);
-
-          let chatInfo = JSON.parse(chats[c]);
-
-          if (chatInfo.friend === friendPublicKey) callback(true, chatInfo);
-          else callback(false, null);
+        if (chats[c] === friendPublicKey) callback(true, chats[c]);
+        else {
+          try {
+            if (JSON.parse(chats[c]) instanceof Object) return;
+            else callback(false, null);
+          } catch {}
         }
       }
     });
