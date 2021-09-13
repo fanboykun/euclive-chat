@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState, useRef } from 'react';
 import { useHistory, useParams, Link } from 'react-router-dom';
 import { useMessages, sendMessage } from '../functions/chatFunctions';
@@ -11,7 +12,7 @@ export default function ChatPage() {
   let [name, setName] = useState('');
   let [image, setImage] = useState('');
   let [status, setStatus] = useState('');
-  let [messages] = useMessages();
+  let [messages] = useMessages(chat);
   let [message, setMessage] = useState('');
   let messageRef = useRef();
 
@@ -118,6 +119,13 @@ export default function ChatPage() {
               placeholder="Type a message..."
               onKeyUp={(event) => {
                 if (event.key !== 'Enter') setMessage(event.target.innerText);
+                else {
+                  messageRef.current.innerText = '';
+
+                  sendMessage(chat, message, 'text', () => {
+                    setMessage('');
+                  });
+                }
               }}
             ></div>
 

@@ -2,7 +2,7 @@ import 'gun-unset';
 import React from 'react';
 import ScrollToBottom from 'react-scroll-to-bottom';
 import { database, user } from '../../state/database';
-import { useFriendRequestsList } from '../../functions/friendsFunctions';
+import { generateMessagingCertificate, useFriendRequestsList } from '../../functions/friendsFunctions';
 
 export default function FriendRequestsPage() {
   let [friendRequests, setFriendRequests] = useFriendRequestsList();
@@ -17,7 +17,13 @@ export default function FriendRequestsPage() {
         database
           .user(publicKey)
           .get('friends')
-          .set(user.is.pub, null, { opt: { cert: certificate } });
+          .set(
+            user.is.pub,
+            () => {
+              generateMessagingCertificate();
+            },
+            { opt: { cert: certificate } }
+          );
       });
 
     database.user(user.is.pub).get('friendRequests').get(key).put(null);

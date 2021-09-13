@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState, useRef } from 'react';
 import { useHistory, useParams, Link } from 'react-router-dom';
 import { sendMessage, useMessages } from '../functions/chatFunctions';
@@ -11,7 +12,7 @@ export default function ChatPage() {
   let [name, setName] = useState('');
   let [image, setImage] = useState('');
   let [status, setStatus] = useState('');
-  let [messages] = useMessages();
+  let [messages] = useMessages(chat);
   let [message, setMessage] = useState('');
   let messageRef = useRef();
 
@@ -124,11 +125,13 @@ export default function ChatPage() {
             <div
               className="flex justify-center items-center flex-none w-10 h-10 rounded-full bg-blue-600 text-white cursor-pointer transition duration-150 ease-in-out pl-1 mt-auto mb-1"
               onClick={() => {
-                if (message !== '')
+                if (message !== '') {
+                  messageRef.current.innerText = '';
+
                   sendMessage(chat, message, 'text', () => {
-                    messageRef.current.innerText = '';
                     setMessage('');
                   });
+                }
               }}
             >
               <svg

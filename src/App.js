@@ -24,9 +24,11 @@ let App = () => {
   }, []);
 
   useEffect(() => {
+    window.addEventListener('beforeunload', setOfflineStatus);
     window.addEventListener('unload', setOfflineStatus);
 
     return () => {
+      window.removeEventListener('beforeunload', setOfflineStatus);
       window.removeEventListener('unload', setOfflineStatus);
     };
   }, []);

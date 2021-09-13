@@ -3,13 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { Route, Link } from 'react-router-dom';
 import Titlebar from '../components/titlebar';
 import Welcome from '../components/welcome';
-import { useChatsList } from '../functions/friendsFunctions';
+import { generateMessagingCertificate, useChatsList } from '../functions/friendsFunctions';
 import { database, generateCertificate, user } from '../state/database';
 import ScrollToBottom from 'react-scroll-to-bottom';
 import FriendsPage from './friends/Friends';
 import ProfilePage from './profile/Profile';
 import ChatPage from './Chat';
-import { SEA } from 'gun';
 
 export default function MobileHomePage() {
   let [pub, setPub] = useState('');
@@ -29,52 +28,20 @@ export default function MobileHomePage() {
         }
       });
 
-    let sizeOf = (obj) => {
-      var size = 0,
-        key;
-      for (key in obj) {
-        if (obj.hasOwnProperty(key)) size++;
-      }
-      return size - 1;
-    };
+    generateMessagingCertificate();
 
-    database
-      .user()
-      .get('friends')
-      .on(async (friends, key) => {
-        let publicKeys = [];
-
-        for (let k in friends) {
-          if (friends[k] !== user.is.pub && typeof friends[k] === 'string')
-            publicKeys.push(friends[k]);
-
-          if (publicKeys.length === sizeOf(friends) && publicKeys.length > 0) {
-            console.log('Generating chatWithCertificate.');
-
-            let chatWithCertificate = await SEA.certify(
-              publicKeys,
-              [{ '*': 'chats', '*': 'messages' }],
-              database.user().pair(),
-              null,
-              {}
-            );
-
-            database.user().get('chatWithCertificate').put(chatWithCertificate);
-          }
-        }
-      });
     return () => {};
   }, []);
 
   useEffect(() => {
     let userData = database.user();
 
-    userData.on((user, key) => {
-      if (user.pub) setPub(user.pub);
-      if (user.userName) setName(user.userName);
-      if (user.alias) setAlias(user.alias);
-      if (user.image) setImage(user.image);
-      if (user.status) setStatus(user.status);
+    userData.on((data, key) => {
+      if (data.pub) setPub(data.pub);
+      if (data.userName) setName(data.userName);
+      if (data.alias) setAlias(data.alias);
+      if (data.image) setImage(data.image);
+      if (data.status) setStatus(data.status);
     });
 
     userData.get('status').put('online');

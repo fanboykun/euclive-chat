@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { database, user } from '../state/database';
 
-import { SEA } from 'gun';
+import SEA from 'gun/sea';
 
 let useFriendsList = () => {
   let [friends, setFriends] = useState([]);
@@ -12,13 +12,14 @@ let useFriendsList = () => {
       .get('friends')
       .on((friends, key) => {
         for (let k in friends) {
-          if (friends[k] !== user.is.pub && friends[k] !== null)
-            database.user(friends[k]).on((friend, key) => {
-              setFriends((old) => [
-                ...old.filter((o) => o.pub !== friend.pub),
-                { ...friend, key: k },
-              ]);
-            });
+          if (friends[k])
+            if (friends[k] !== user.is.pub && typeof friends[k] === 'string')
+              database.user(friends[k]).on((friend, key) => {
+                setFriends((old) => [
+                  ...old.filter((o) => o.pub !== friend.pub),
+                  { ...friend, key: k },
+                ]);
+              });
         }
       });
 
@@ -37,16 +38,17 @@ let useOnlineFriendsList = () => {
       .get('friends')
       .on(async (friends, key) => {
         for (let k in friends) {
-          if (friends[k] !== user.is.pub && friends[k] !== null) {
-            database.user(friends[k]).on((friend, key) => {
-              setFriends((old) => [
-                ...old.filter(
-                  (o) => o.pub !== friend.pub && o.status === 'online'
-                ),
-                { ...friend, key: k },
-              ]);
-            });
-          }
+          if (friends[k])
+            if (friends[k] !== user.is.pub && typeof friends[k] === 'string') {
+              database.user(friends[k]).on((friend, key) => {
+                setFriends((old) => [
+                  ...old.filter(
+                    (o) => o.pub !== friend.pub && o.status === 'online'
+                  ),
+                  { ...friend, key: k },
+                ]);
+              });
+            }
         }
       });
 
@@ -65,8 +67,11 @@ let useFriendRequestsList = () => {
       .get('friendRequests')
       .on((friendRequests, key) => {
         for (let k in friendRequests) {
-          if (friendRequests[k] !== null)
-            if (friendRequests[k] !== user.is.pub)
+          if (friendRequests[k])
+            if (
+              friendRequests[k] !== user.is.pub &&
+              typeof friendRequests[k] === 'string'
+            )
               database.user(friendRequests[k]).on((request, key) => {
                 setFriendRequests((old) => [
                   ...old.filter((o) => o.pub !== request.pub),
@@ -106,6 +111,47 @@ let useChatsList = () => {
   return [chats, setChats];
 };
 
+let createIfNotCreated = (friendPublicKey, friendMessagingCertificate) => {
+  database
+    .user(friendPublicKey)
+    .get('chats')
+    .once((chats, key) => {
+      if (!chats)
+        database
+          .user(friendPublicKey)
+          .get('chats')
+          .set(
+            user.is.pub,
+            () => {
+              console.log('Chat added to friend.');
+            },
+            {
+              opt: { cert: friendMessagingCertificate },
+            }
+          );
+      for (let c in chats) {
+        if (chats[c] !== user.is.pub && typeof chats[c] === 'string') {
+          if (chats[c] !== friendPublicKey) {
+            database
+              .user(friendPublicKey)
+              .get('chats')
+              .set(
+                user.is.pub,
+                () => {
+                  console.log('Chat added to friend.');
+                },
+                {
+                  opt: { cert: friendMessagingCertificate },
+                }
+              );
+          } else {
+            console.log('Chat already created with friend.');
+          }
+        }
+      }
+    });
+};
+
 let generateChat = async (chatWith) => {
   database
     .user()
@@ -113,23 +159,13 @@ let generateChat = async (chatWith) => {
     .set(chatWith, async () => {
       console.log('Chat added.');
 
-      let friendChatWithCertificate = await database
-        .user(chatWith)
-        .get('chatWithCertificate')
-        .then();
-
       database
         .user(chatWith)
-        .get('chats')
-        .set(
-          user.is.pub,
-          () => {
-            console.log('Chat added to friend.');
-          },
-          {
-            opt: { cert: friendChatWithCertificate },
-          }
-        );
+        .get('messagingCertificate')
+        .on((friendMessagingCertificate, key) => {
+          if (friendMessagingCertificate)
+            createIfNotCreated(chatWith, friendMessagingCertificate);
+        });
     });
 };
 
@@ -140,12 +176,49 @@ let userHasChatWith = (friendPublicKey, callback) => {
     .once((chats, key) => {
       if (!chats) callback(false, null);
       for (let c in chats) {
-        if (chats[c] === friendPublicKey) callback(true, chats[c]);
-        else {
-          try {
-            if (JSON.parse(chats[c]) instanceof Object) return;
-            else callback(false, null);
-          } catch {}
+        if (chats[c] !== user.is.pub && typeof chats[c] === 'string') {
+          if (chats[c] === friendPublicKey) {
+            callback(true, chats[c]);
+          } else {
+            callback(false, null);
+          }
+        }
+      }
+    });
+};
+
+let sizeOf = (obj) => {
+  var size = 0,
+    key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) size++;
+  }
+  return size - 1;
+};
+
+let generateMessagingCertificate = () => {
+  database
+    .user()
+    .get('friends')
+    .on(async (friends, key) => {
+      let publicKeys = [];
+
+      for (let k in friends) {
+        if (friends[k] !== user.is.pub && typeof friends[k] === 'string')
+          publicKeys.push(friends[k]);
+
+        if (publicKeys.length === sizeOf(friends) && publicKeys.length > 0) {
+          console.log('Generating Messaging Certificate.');
+
+          let chatWithCertificate = await SEA.certify(
+            publicKeys,
+            [{ '*': 'chats' }, { '*': 'messages' }],
+            database.user().pair(),
+            null,
+            {}
+          );
+
+          database.user().get('messagingCertificate').put(chatWithCertificate);
         }
       }
     });
@@ -158,4 +231,5 @@ export {
   useChatsList,
   userHasChatWith,
   generateChat,
+  generateMessagingCertificate,
 };

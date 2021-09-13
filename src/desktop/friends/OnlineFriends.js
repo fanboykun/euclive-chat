@@ -64,7 +64,7 @@ export default function AllFriendsPage() {
                     onClick={() => {
                       userHasChatWith(pub, (hasChatWith, data) => {
                         if (hasChatWith) {
-                          console.log(data);
+                          console.log(hasChatWith);
                           history.push(`/chat/${data}`);
                         } else generateChat(pub);
                       });
