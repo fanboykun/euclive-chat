@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
-import { database, user } from '../state/database';
-
 import SEA from 'gun/sea';
+import { useEffect, useState } from 'react';
+import { getLatest, loadLatest } from '../services/chats';
+import { load } from '../services/messaging';
+import { database, user } from '../state/database';
 
 let useFriendsList = () => {
   let [friends, setFriends] = useState([]);
@@ -10,20 +11,31 @@ let useFriendsList = () => {
     database
       .user()
       .get('friends')
-      .on((friends, key) => {
-        for (let k in friends) {
-          if (friends[k])
-            if (friends[k] !== user.is.pub && typeof friends[k] === 'string')
-              database.user(friends[k]).on((friend, key) => {
-                setFriends((old) => [
-                  ...old.filter((o) => o.pub !== friend.pub),
-                  { ...friend, key: k },
-                ]);
-              });
-        }
-      });
+      .on(
+        (friends, key) => {
+          let list = [];
 
-    return () => {};
+          for (let k in friends) {
+            if (friends[k])
+              if (friends[k] !== user.is.pub && typeof friends[k] === 'string')
+                list.push(friends[k]);
+          }
+
+          list.forEach((item, index) => {
+            database.user(item).on((friend, key) => {
+              setFriends((old) => [
+                ...old.filter((o) => o.pub !== friend.pub),
+                { ...friend, key: index },
+              ]);
+            });
+          });
+        },
+        { change: true }
+      );
+
+    return () => {
+      setFriends([]);
+    };
   }, []);
 
   return [friends, setFriends];
@@ -36,23 +48,36 @@ let useOnlineFriendsList = () => {
     database
       .user()
       .get('friends')
-      .on(async (friends, key) => {
-        for (let k in friends) {
-          if (friends[k])
-            if (friends[k] !== user.is.pub && typeof friends[k] === 'string') {
-              database.user(friends[k]).on((friend, key) => {
-                setFriends((old) => [
-                  ...old.filter(
-                    (o) => o.pub !== friend.pub && o.status === 'online'
-                  ),
-                  { ...friend, key: k },
-                ]);
-              });
-            }
-        }
-      });
+      .on(
+        (friends, key) => {
+          let list = [];
 
-    return () => {};
+          for (let k in friends) {
+            if (friends[k])
+              if (
+                friends[k] !== user.is.pub &&
+                typeof friends[k] === 'string'
+              ) {
+                list.push(friends[k]);
+              }
+          }
+
+          list.forEach((item, index) =>
+            database.user(item).on((friend, key) => {
+              if (friend.status === 'online')
+                setFriends((old) => [
+                  ...old.filter((o) => o.pub !== friend.pub),
+                  { ...friend, key: index },
+                ]);
+            })
+          );
+        },
+        { change: true }
+      );
+
+    return () => {
+      setFriends([]);
+    };
   }, []);
 
   return [friends, setFriends];
@@ -65,23 +90,34 @@ let useFriendRequestsList = () => {
     database
       .user()
       .get('friendRequests')
-      .on((friendRequests, key) => {
-        for (let k in friendRequests) {
-          if (friendRequests[k])
-            if (
-              friendRequests[k] !== user.is.pub &&
-              typeof friendRequests[k] === 'string'
-            )
-              database.user(friendRequests[k]).on((request, key) => {
-                setFriendRequests((old) => [
-                  ...old.filter((o) => o.pub !== request.pub),
-                  { ...request, key: k },
-                ]);
-              });
-        }
-      });
+      .on(
+        (friendRequests, key) => {
+          let list = [];
 
-    return () => {};
+          for (let k in friendRequests) {
+            if (friendRequests[k])
+              if (
+                friendRequests[k] !== user.is.pub &&
+                typeof friendRequests[k] === 'string'
+              )
+                list.push(friendRequests[k]);
+          }
+
+          list.forEach((item, index) =>
+            database.user(item).on((request, key) => {
+              setFriendRequests((old) => [
+                ...old.filter((o) => o.pub !== request.pub),
+                { ...request, key: index },
+              ]);
+            })
+          );
+        },
+        { change: true }
+      );
+
+    return () => {
+      setFriendRequests([]);
+    };
   }, []);
 
   return [friendRequests, setFriendRequests];
@@ -89,24 +125,60 @@ let useFriendRequestsList = () => {
 
 let useChatsList = () => {
   let [chats, setChats] = useState([]);
+  let [count, setCount] = useState(0);
 
   useEffect(() => {
     database
       .user()
       .get('chats')
       .on((chats, key) => {
-        for (let c in chats) {
-          database.user(chats[c]).on((friend, key) => {
-            setChats((old) => [
-              ...old.filter((o) => o.pub !== chats[c]),
-              { pub: chats[c], friend, key: c },
-            ]);
-          });
-        }
-      });
+        setCount((c) => c++);
 
-    return () => {};
+        let chatKeys = [];
+
+        for (let c in chats) {
+          chatKeys.push(chats[c]);
+        }
+
+        chatKeys.forEach((key) => {
+          database.user(key).on((friend) => {
+            if (friend) {
+              setChats((old) => [
+                ...old.filter((o) => o.pub !== friend.pub),
+                {
+                  pub: friend.pub,
+                  friend,
+                  key,
+                },
+              ]);
+
+              database
+                .get(user.is.pub)
+                .get('latestMessage')
+                .get(friend.pub)
+                .on((message) => {
+                  try {
+                    let latestMessage = JSON.parse(message);
+                    setChats((old) => [
+                      ...old.filter((o) => o.pub !== friend.pub),
+                      {
+                        pub: friend.pub,
+                        friend,
+                        latestMessage,
+                        key,
+                      },
+                    ]);
+                  } catch {}
+                });
+            }
+          });
+        });
+      });
   }, []);
+
+  useEffect(() => {
+    console.log(`chats set: ${count} times`);
+  }, [count]);
 
   return [chats, setChats];
 };
@@ -187,41 +259,35 @@ let userHasChatWith = (friendPublicKey, callback) => {
     });
 };
 
-let sizeOf = (obj) => {
-  var size = 0,
-    key;
-  for (key in obj) {
-    if (obj.hasOwnProperty(key)) size++;
-  }
-  return size - 1;
-};
-
 let generateMessagingCertificate = () => {
   database
     .user()
     .get('friends')
-    .on(async (friends, key) => {
-      let publicKeys = [];
+    .on(
+      async (friends, key) => {
+        let publicKeys = [];
 
-      for (let k in friends) {
-        if (friends[k] !== user.is.pub && typeof friends[k] === 'string')
-          publicKeys.push(friends[k]);
-
-        if (publicKeys.length === sizeOf(friends) && publicKeys.length > 0) {
-          console.log('Generating Messaging Certificate.');
-
-          let chatWithCertificate = await SEA.certify(
-            publicKeys,
-            [{ '*': 'chats' }, { '*': 'messages' }],
-            database.user().pair(),
-            null,
-            {}
-          );
-
-          database.user().get('messagingCertificate').put(chatWithCertificate);
+        for (let k in friends) {
+          if (friends[k] !== user.is.pub && typeof friends[k] === 'string')
+            publicKeys.push(friends[k]);
         }
-      }
-    });
+
+        console.log('Generating Messaging Certificate.');
+
+        let chatWithCertificate = await SEA.certify(
+          publicKeys,
+          [{ '*': 'chats' }, { '*': 'messages' }],
+          database.user().pair(),
+          null,
+          {}
+        );
+
+        console.log(chatWithCertificate);
+
+        database.user().get('messagingCertificate').put(chatWithCertificate);
+      },
+      { change: true }
+    );
 };
 
 export {

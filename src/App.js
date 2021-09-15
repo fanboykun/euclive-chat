@@ -24,24 +24,26 @@ let App = () => {
   }, []);
 
   useEffect(() => {
-    window.addEventListener('beforeunload', setOfflineStatus);
+    window.addEventListener('blur', setOfflineStatus);
+    window.addEventListener('focus', setOnlineStatus);
     window.addEventListener('unload', setOfflineStatus);
 
     return () => {
-      window.removeEventListener('beforeunload', setOfflineStatus);
+      window.removeEventListener('blur', setOfflineStatus);
       window.removeEventListener('unload', setOfflineStatus);
+      window.removeEventListener('focus', setOnlineStatus);
     };
   }, []);
+
+  let setOnlineStatus = async () => {
+    if (user.is) {
+      database.user().get('status').put('online');
+    }
+  }
 
   let setOfflineStatus = async () => {
     if (user.is) {
       database.user().get('status').put('offline');
-      database.user().on((user, key) => {
-        if (user.status === 'offline') {
-        } else {
-          database.user().get('status').put('offline');
-        }
-      });
     }
   };
 

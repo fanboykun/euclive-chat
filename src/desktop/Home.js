@@ -1,16 +1,21 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
-import { Route, Link } from 'react-router-dom';
+import { Route, Link, useHistory } from 'react-router-dom';
 import Titlebar from '../components/titlebar';
 import Welcome from '../components/welcome';
 import { database, generateCertificate, user } from '../state/database';
 import FriendsPage from './friends/Friends';
 import ProfilePage from './profile/Profile';
-import { generateMessagingCertificate, useChatsList } from '../functions/friendsFunctions';
+import {
+  generateMessagingCertificate,
+  useChatsList,
+} from '../functions/friendsFunctions';
 import ScrollToBottom from 'react-scroll-to-bottom';
 import ChatPage from './Chat';
+import moment from 'moment';
 
 export default function HomePage() {
+  let history = useHistory();
   let [pub, setPub] = useState('');
   let [name, setName] = useState('');
   let [alias, setAlias] = useState('');
@@ -53,11 +58,30 @@ export default function HomePage() {
     <div className="flex flex-col bg-black w-full h-full">
       <Titlebar title="Lone Wolf" />
       <div className="flex w-full h-full overflow-y-hidden">
-        <div className="flex flex-col flex-none w-72">
+        <div className="flex flex-col flex-none w-80">
           <div className="flex flex-col w-full h-full">
-            {chats.length > 0 && (
-              <ScrollToBottom className="flex flex-col flex-1 overflow-auto h-full p-2">
-                {chats.map(
+            <div className="flex justify-between items-center shadow rounded-tl-lg p-3 mt-2">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-1">
+                  <div className="flex items-center text-md text-gray-200 h-auto">
+                    Chats
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {chats.length > 0 &&
+              chats
+                .sort((a, b) => {
+                  if (!a.latestMessage) return 1;
+                  if (!b.latestMessage) return 1;
+
+                  if (a.latestMessage.time > b.latestMessage.time) return -1;
+                  if (a.latestMessage.time < b.latestMessage.time) return 1;
+
+                  return 0;
+                })
+                .map(
                   (
                     {
                       friend: {
@@ -67,45 +91,58 @@ export default function HomePage() {
                         status,
                         pub: friendPub,
                       },
+                      latestMessage,
                       pub: chatPub,
                     },
                     index
                   ) => (
-                    <Link
+                    <div
                       key={index}
-                      to={`/chat/${chatPub}`}
-                      className="flex w-full items-center space-x-2"
+                      className="flex items-center space-x-1 w-full flex-none"
                     >
-                      <div className="flex items-center space-x-1">
-                        <div className="relative flex flex-none w-12 h-12 bg-black rounded-full border-l-2 border-t-2 border-r-2 border-b-2 border-black">
-                          <img
-                            className="object-cover relative rounded-full w-full h-full "
-                            src={
-                              image ||
-                              'https://skyportal.xyz/BADvbV9BumlWmiKc1EOxgNOj-zaRr-_TOlzBw1HQzq6Zdg'
-                            }
-                            alt=""
-                          />
-                          <div
-                            className={`absolute bottom-0 right-0 border-l-2 border-t-2 border-r-2 border-b-2 border-black w-3 h-3 bg-gray-400 rounded-full ${
-                              status === 'online' && 'bg-green-600'
-                            }`}
-                          />
-                        </div>
-                        <div className="flex flex-col">
-                          <div className="flex items-center text-xs text-gray-200 h-auto">
-                            {userName || `@${alias}`}
-                          </div>
-                          <div className="flex items-center text-xs text-gray-400 h-auto">
-                            Area under construction, beware!
-                          </div>
-                        </div>
+                      <div
+                        onClick={() => {
+                          history.push('/profile/' + chatPub);
+                        }}
+                        className="relative flex flex-none w-12 h-12 bg-black rounded-full border-l-2 border-t-2 border-r-2 border-b-2 border-black"
+                      >
+                        <img
+                          className="object-cover relative rounded-full w-full h-full "
+                          src={
+                            image ||
+                            'https://skyportal.xyz/BADvbV9BumlWmiKc1EOxgNOj-zaRr-_TOlzBw1HQzq6Zdg'
+                          }
+                          alt=""
+                        />
+                        <div
+                          className={`absolute bottom-0 right-0 border-l-2 border-t-2 border-r-2 border-b-2 border-black w-3 h-3 bg-gray-400 rounded-full ${
+                            status === 'online' && 'bg-green-600'
+                          }`}
+                        />
                       </div>
-                    </Link>
+                      <div
+                        onClick={() => {
+                          history.push('/chat/' + chatPub);
+                        }}
+                        className="relative flex flex-col"
+                      >
+                        <div className="flex items-center text-xs text-gray-200 h-auto">
+                          {userName || `@${alias}`}
+                        </div>
+                        {latestMessage && (
+                          <div className="relative flex items-center text-xs text-gray-400 w-full h-auto">
+                            <div className="w-44 truncate">
+                              {latestMessage.message}
+                            </div>
+                            <div className="w-16 ml-3">
+                              {moment(latestMessage.time).format('LT')}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   )
                 )}
-              </ScrollToBottom>
-            )}
 
             {chats.length === 0 && (
               <div className="flex flex-col justify-center items-center w-full h-full">

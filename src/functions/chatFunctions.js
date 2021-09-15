@@ -1,29 +1,17 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react';
+import { clear, get } from '../services/messaging';
 import { database, user } from '../state/database';
 
-let useMessages = (chat) => {
+let useMessages = () => {
   let [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    database
-      .user(user.is.pub)
-      .get('messages')
-      .get(chat)
-      .on((messages, key) => {
-        for (let m in messages) {
-          try {
-            let messageData = JSON.parse(messages[m]);
+    get().subscribe((messages) => setMessages(messages));
 
-            setMessages((old) => [
-              ...old.filter((o) => o.key !== m),
-              { ...messageData, key: m },
-            ]);
-          } catch {}
-        }
-      });
-
-    return () => {};
+    return () => {
+      clear();
+    };
   }, []);
 
   return [messages, setMessages];
@@ -41,31 +29,30 @@ let sendMessage = (chat, message, type, callback = () => {}) => {
   };
 
   database
-    .user()
+    .get(chat)
+    .get('messages')
+    .get(user.is.pub)
+    .set(JSON.stringify(messageData));
+
+  database
+    .get(chat)
+    .get('latestMessage')
+    .get(user.is.pub)
+    .put(JSON.stringify(messageData));
+
+  database
+    .get(user.is.pub)
     .get('messages')
     .get(chat)
     .set(JSON.stringify(messageData), () => {
-      database
-        .user(chat)
-        .get('messagingCertificate')
-        .once(async (certificate, key) => {
-          console.log('sending message...', certificate);
-
-          database
-            .user(chat)
-            .get('messages')
-            .get(user.is.pub)
-            .set(
-              JSON.stringify(messageData),
-              (data) => {
-                console.log('message sent');
-                callback();
-                console.log(data);
-              },
-              { opt: { cert: certificate } }
-            );
-        });
+      callback();
     });
+
+  database
+    .get(user.is.pub)
+    .get('latestMessage')
+    .get(chat)
+    .put(JSON.stringify(messageData));
 };
 
 export { useMessages, sendMessage };

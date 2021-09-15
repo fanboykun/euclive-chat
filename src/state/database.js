@@ -5,7 +5,8 @@ import 'gun/lib/load';
 
 let database = new Gun({
   peers: ['https://lonewolf-relay.seconddawn.cloud/gun'],
-  // peers: ['http://localhost:8765/gun']
+  // peers: ['http://localhost:8765/gun'],
+  axe: false
 });
 
 let user = database.user().recall({ sessionStorage: true });

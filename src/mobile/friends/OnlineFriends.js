@@ -1,5 +1,4 @@
 import React from 'react';
-import ScrollToBottom from 'react-scroll-to-bottom';
 import { Link, useHistory } from 'react-router-dom';
 
 import {
@@ -15,7 +14,7 @@ export default function MobileOnlineFriendsPage() {
   return (
     <>
       {friends.length > 0 && (
-        <ScrollToBottom className="flex flex-col flex-1 overflow-auto h-full p-2">
+        <div className="flex flex-col overflow-auto h-full p-2">
           {friends
             .sort((a, b) => {
               if (a.userName > b.userName || a.alias > b.alias) return -1;
@@ -88,7 +87,7 @@ export default function MobileOnlineFriendsPage() {
                 </div>
               </div>
             ))}
-        </ScrollToBottom>
+        </div>
       )}
 
       {friends.filter((friend) => friend.status === 'online').length === 0 && (

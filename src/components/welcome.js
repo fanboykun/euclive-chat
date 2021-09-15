@@ -11,10 +11,10 @@ export default function Welcome() {
     <div className="flex flex-col justify-center items-center w-full h-full">
       <div className="flex justify-center items-center">
         <div className="flex flex-col items-center w-auto h-auto text-gray-300">
-          <div className="font-bold text-lg">
+          <div className="font-bold text-md md:text-lg">
             Welcome to Lone Wolf, you are {status}.
           </div>
-          <div className="w-96 text-center">
+          <div className="w-full md:w-96 text-xs md:text-md text-center">
             This is a peer-to-peer messaging application, create a new group or
             chat to start messaging people.
           </div>

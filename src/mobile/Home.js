@@ -1,16 +1,20 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
-import { Route, Link } from 'react-router-dom';
+import { Route, Link, useHistory } from 'react-router-dom';
 import Titlebar from '../components/titlebar';
 import Welcome from '../components/welcome';
-import { generateMessagingCertificate, useChatsList } from '../functions/friendsFunctions';
+import {
+  generateMessagingCertificate,
+  useChatsList,
+} from '../functions/friendsFunctions';
 import { database, generateCertificate, user } from '../state/database';
-import ScrollToBottom from 'react-scroll-to-bottom';
 import FriendsPage from './friends/Friends';
 import ProfilePage from './profile/Profile';
 import ChatPage from './Chat';
+import moment from 'moment';
 
 export default function MobileHomePage() {
+  let history = useHistory();
   let [pub, setPub] = useState('');
   let [name, setName] = useState('');
   let [alias, setAlias] = useState('');
@@ -50,7 +54,7 @@ export default function MobileHomePage() {
   }, []);
 
   return (
-    <div className="flex flex-col bg-black w-full h-full">
+    <div className="flex flex-col bg-black w-screen h-full">
       <div className="px-2 pt-2">
         <Titlebar title="Lone Wolf" />
       </div>
@@ -125,77 +129,131 @@ export default function MobileHomePage() {
           </div>
         </div>
       </div>
+      {chats.length > 0 && (
+        <Route
+          path="/"
+          exact
+          component={() => (
+            <div className="flex flex-col w-full h-full overflow-y-auto rounded-t-xl">
+              <div className="flex justify-between items-center shadow rounded-tl-lg p-3">
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-1">
+                    <div className="flex items-center text-md text-gray-200 h-auto">
+                      Chats
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-      <div className="flex flex-col flex-grow h-full bg-gray-800 rounded-t-xl mt-5">
-        {chats.length > 0 && (
-          <Route
-            path="/"
-            exact
-            component={() => (
-              <ScrollToBottom className="flex flex-col flex-1 overflow-auto h-full p-2">
-                {chats.map(
-                  (
-                    {
-                      friend: {
-                        alias,
-                        image,
-                        userName,
-                        status,
-                        pub: friendPub,
+              <div className="flex flex-col w-full h-full overflow-y-auto p-2">
+                {chats
+                  .sort((a, b) => {
+                    if (!a.latestMessage) return 1;
+                    if (!b.latestMessage) return 1;
+
+                    if (a.latestMessage.time > b.latestMessage.time) return -1;
+                    if (a.latestMessage.time < b.latestMessage.time) return 1;
+
+                    return 0;
+                  })
+                  .map(
+                    (
+                      {
+                        friend: {
+                          alias,
+                          image,
+                          userName,
+                          status,
+                          pub: friendPub,
+                        },
+                        latestMessage,
+                        pub: chatPub,
                       },
-                      pub: chatPub,
-                    },
-                    index
-                  ) => (
-                    <Link
-                      key={index}
-                      to={`/chat/${chatPub}`}
-                      className="flex w-full items-center space-x-2 border-b border-gray-700 py-1"
-                    >
-                      <div className="flex items-center space-x-1">
-                        <div className="relative flex flex-none w-12 h-12 bg-black rounded-full border-l-2 border-t-2 border-r-2 border-b-2 border-black">
-                          <img
-                            className="object-cover relative rounded-full w-full h-full "
-                            src={
-                              image ||
-                              'https://skyportal.xyz/BADvbV9BumlWmiKc1EOxgNOj-zaRr-_TOlzBw1HQzq6Zdg'
-                            }
-                            alt=""
-                          />
-                          <div
-                            className={`absolute bottom-0 right-0 border-l-2 border-t-2 border-r-2 border-b-2 border-black w-3 h-3 bg-gray-400 rounded-full ${
-                              status === 'online' && 'bg-green-600'
-                            }`}
-                          />
+                      index
+                    ) => (
+                      <div
+                        className="flex w-full items-center space-x-2 border-b border-gray-900 pb-2"
+                        key={index}
+                      >
+                        <div
+                          className="flex-none"
+                          onClick={() => {
+                            history.push('/profile/' + chatPub);
+                          }}
+                        >
+                          <div className="relative flex flex-none w-10 h-10 bg-black rounded-full border-l-2 border-t-2 border-r-2 border-b-2 border-black">
+                            <img
+                              className="object-cover relative rounded-full w-full h-full "
+                              src={
+                                image ||
+                                'https://skyportal.xyz/BADvbV9BumlWmiKc1EOxgNOj-zaRr-_TOlzBw1HQzq6Zdg'
+                              }
+                              alt=""
+                            />
+                            <div
+                              className={`absolute bottom-0 right-0 border-l-2 border-t-2 border-r-2 border-b-2 border-black w-3 h-3 bg-gray-400 rounded-full ${
+                                status === 'online' && 'bg-green-600'
+                              }`}
+                            />
+                          </div>
                         </div>
-                        <div className="flex flex-col">
-                          <div className="flex items-center text-xs text-gray-200 h-auto">
+
+                        <div
+                          className="flex flex-col w-full"
+                          onClick={() => {
+                            history.push('/chat/' + chatPub);
+                          }}
+                        >
+                          <div className="w-full text-xs text-gray-200">
                             {userName || `@${alias}`}
                           </div>
-                          <div className="flex items-center text-xs text-gray-400 h-auto">
-                            Area under construction, beware!
-                          </div>
+                          {latestMessage && (
+                            <div className="flex justify-between text-xs text-gray-400">
+                              <div className="w-60 truncate">
+                                {latestMessage.message}
+                              </div>
+                              <div className="flex-none">
+                                {moment(latestMessage.time).format('LT')}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </Link>
-                  )
-                )}
-              </ScrollToBottom>
-            )}
-          />
-        )}
-
-        {chats.length === 0 && (
-          <Route path="/" exact component={() => <Welcome />} />
-        )}
-
-        <Route
-          path="/friends"
-          render={({ match: { url } }) => <FriendsPage url={url} />}
+                    )
+                  )}
+              </div>
+            </div>
+          )}
         />
-        <Route path="/profile/:publicKey" component={ProfilePage} />
-        <Route path="/chat/:chat" component={ChatPage} />
-      </div>
+      )}
+
+      {chats.length === 0 && (
+        <Route
+          path="/"
+          exact
+          component={() => (
+            <>
+              <div className="flex justify-between items-center shadow rounded-tl-lg p-3">
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-1">
+                    <div className="flex items-center text-md text-gray-200 h-auto">
+                      Chats
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <Welcome />
+            </>
+          )}
+        />
+      )}
+
+      <Route
+        path="/friends"
+        render={({ match: { url } }) => <FriendsPage url={url} />}
+      />
+      <Route path="/profile/:publicKey" component={ProfilePage} />
+      <Route path="/chat/:chat" component={ChatPage} />
 
       {/* <div className="flex w-full h-full overflow-y-hidden">
         <div className="flex flex-col flex-none w-72">

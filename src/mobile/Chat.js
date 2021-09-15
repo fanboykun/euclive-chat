@@ -1,10 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState, useRef } from 'react';
-import { useHistory, useParams, Link } from 'react-router-dom';
-import { sendMessage, useMessages } from '../functions/chatFunctions';
-import { database, user } from '../state/database';
-import ScrollToBottom from 'react-scroll-to-bottom';
 import moment from 'moment';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useHistory, useParams } from 'react-router-dom';
+import ScrollToBottom from 'react-scroll-to-bottom';
+import { sendMessage, useMessages } from '../functions/chatFunctions';
+import { load } from '../services/messaging';
+import { database, user } from '../state/database';
 
 export default function ChatPage() {
   let history = useHistory();
@@ -12,7 +13,7 @@ export default function ChatPage() {
   let [name, setName] = useState('');
   let [image, setImage] = useState('');
   let [status, setStatus] = useState('');
-  let [messages] = useMessages(chat);
+  let [messages] = useMessages();
   let [message, setMessage] = useState('');
   let messageRef = useRef();
 
@@ -25,6 +26,10 @@ export default function ChatPage() {
 
     return () => {};
   }, []);
+
+  useEffect(() => {
+    load(chat);
+  }, [chat]);
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -86,10 +91,16 @@ export default function ChatPage() {
                   return 0;
                 })
                 .map(
-                  ({ from, key, message, read, received, sent, time, type }) =>
+                  (
+                    { from, key, message, read, received, sent, time, type },
+                    index
+                  ) =>
                     from === user.is.pub ? (
-                      <div class="flex flex-col w-full px-2 pt-1">
-                        <div class="ml-auto rounded-md px-2 py-1 border-l border-t border-r border-b border-gray-850 text-md select-text max-w-6xl">
+                      <div
+                        className="flex flex-col w-full px-2 pt-1"
+                        key={index}
+                      >
+                        <div className="ml-auto rounded-md px-2 py-1 border-l border-t border-r border-b border-gray-850 text-md select-text max-w-6xl">
                           {message}
                         </div>
                         <div className="ml-auto mt-1 text-xs">
@@ -97,8 +108,11 @@ export default function ChatPage() {
                         </div>
                       </div>
                     ) : (
-                      <div class="flex flex-col w-full px-2 pt-1">
-                        <div class="mr-auto rounded-md px-2 py-1 bg-gray-850 shadow-md select-text max-w-6xl">
+                      <div
+                        className="flex flex-col w-full px-2 pt-1"
+                        key={index}
+                      >
+                        <div className="mr-auto rounded-md px-2 py-1 bg-gray-850 shadow-md select-text max-w-6xl">
                           {message}
                         </div>
                         <div className="mr-auto mt-1 text-xs">
