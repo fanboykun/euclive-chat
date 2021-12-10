@@ -1,7 +1,7 @@
 {
-  "name": "lone-wolf",
+  "name": "euclive-chat",
   "version": "0.0.1",
-  "description": "LoneWolf is a peer-to-peer messenger.",
+  "description": "a peer-to-peer messenger.",
   "private": false,
   "homepage": "./",
   "license": "GPL-3.0",
@@ -42,8 +42,8 @@
     "react-build": "craco build",
     "test": "craco test"
   },
-  "repository": "git@github.com:connor-davis/lonewolf-desktop.git",
-  "author": "Connor Davis <19422@kloofhigh.co.za>",
+  "repository": "git@github.com:https://github.com/fanboykun/euclive-chat.git",
+  "author": "Fanboykun",
   "eslintConfig": {
     "extends": "react-app"
   },

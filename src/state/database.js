@@ -4,7 +4,8 @@ import 'gun/sea';
 import 'gun/lib/load';
 
 let database = new Gun({
-  peers: ['https://lonewolf-relay.seconddawn.cloud/gun'],
+  // peers: ['https://lonewolf-relay.seconddawn.cloud/gun'],
+  peers: ['https://euclive.herokuapp.com/gun'],
   // peers: ['http://localhost:8765/gun'],
   axe: false
 });
